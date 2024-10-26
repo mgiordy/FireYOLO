@@ -1,0 +1,21 @@
+program: a_train_export.py
+method: grid
+parameters:
+  data:
+    values:
+      # - 'VOC'
+      - 'coco'
+  model:
+    values:
+      - tinyissimo-v8-b
+      - tinyissimo-v8-n
+      - tinyissimo-v8-s
+      - tinyissimo-v8-m
+      - tinyissimo-v8-l
+      - tinyissimo-v8-x
+command:
+- ${env}
+- ${interpreter}
+- ${program}
+# - "--param"
+- ${args}
