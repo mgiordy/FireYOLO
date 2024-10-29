@@ -29,7 +29,7 @@ elif args.model == 'tinyissimo-v8-x':
 
 # Train - WARNING! Overwrites existing trained models
 folder_name = f"{args.model}_{args.data}"
-model.train(data=f"{args.data}.yaml", project="results", name=folder_name, optimizer='SGD', imgsz=img_size, epochs=5, batch=batch_size, exist_ok=True)
+model.train(data=f"{args.data}.yaml", project="results", name=folder_name, optimizer='SGD', imgsz=img_size, epochs=1000, batch=batch_size, exist_ok=True)
 
 # Export
 model.export(format="onnx", project="results", name=folder_name, imgsz=[img_size, img_size], exist_ok=True)
