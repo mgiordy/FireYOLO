@@ -3,7 +3,7 @@ method: grid
 parameters:
   data:
     values:
-      # - 'VOC'
+      - 'VOC'
       - 'coco'
   model:
     values:

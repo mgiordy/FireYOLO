@@ -9,6 +9,8 @@ parser.add_argument('--data', type=str, default='coco.yaml', help='Dataset confi
 parser.add_argument('--model', type=str, default='tinyissimo-v8-n', help='Model configuration file or name')
 args = parser.parse_args()
 
+wandb.init(project='results')
+
 load = False
 exp_id = 'exp1'
 
@@ -39,8 +41,18 @@ elif args.model == 'tinyissimo-v8-m' or args.model == 'tinyissimo-v8-l':
 elif args.model == 'tinyissimo-v8-x':
     batch_size = 128
 
-# Train
-model.train(data=f"{args.data}.yaml", project="results", name="exp", optimizer='SGD', imgsz=img_size, epochs=1000, batch=batch_size)
+# Train - WARNING! Overwrites existing trained models
+model.train(data=f"{args.data}.yaml", project="results", name=args.model, optimizer='SGD', imgsz=img_size, epochs=1000, batch=batch_size, exist_ok=True)
 
 # Export
 model.export(format="onnx", project="results", name="exp", imgsz=[img_size, img_size])
+
+# Validate
+onnx_model = YOLO(f"./results/{args.model}/weights/best.onnx")
+val_metrics = onnx_model.val(data=f"{args.data}.yaml", project="results", name=args.model, task='detect', imgsz=img_size, batch=batch_size)
+
+val_dict = {f"val_{key}": value for key, value in val_metrics.results_dict.items()}
+
+wandb.log(val_dict)
+
+wandb.finish()

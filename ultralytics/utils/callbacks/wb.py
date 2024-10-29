@@ -148,7 +148,8 @@ def on_train_end(trainer):
             x_title=x_title,
             y_title=y_title,
         )
-    wb.run.finish()  # required or run continues on dashboard
+    # Finishing wandb run in main script
+    # wb.run.finish()  # required or run continues on dashboard
 
 
 callbacks = (
