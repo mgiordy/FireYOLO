@@ -62,7 +62,7 @@ augment: False # (bool) apply image augmentation to prediction sources
 agnostic_nms: False # (bool) class-agnostic NMS
 # (int | list[int], optional) filter results by class, i.e. classes=0, or classes=[0,2,3]
 #Coco forest fire classes: [0, 10, 13, 14, 15, 16, 17, 18, 19, 24, 26, 28, 39, 67, 56, 57, 59, 60, 69, 70, 72]
-classes: [0, 10, 13, 14, 15, 16, 17, 18, 19, 24, 26, 28, 39, 67, 56, 57, 59, 60, 69, 70, 72]
+classes: [1, 7, 8, 10, 11, 13, 14, 17, 19]
 
 retina_masks: False # (bool) use high-resolution segmentation masks
 embed: # (list[int], optional) return feature vectors/embeddings from given layers

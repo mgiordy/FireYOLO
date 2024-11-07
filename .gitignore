@@ -175,3 +175,5 @@ results/
 wandb/
 
 .DS_Store
+
+*.zip

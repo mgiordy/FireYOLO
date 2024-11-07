@@ -3,8 +3,8 @@ method: grid
 parameters:
   data:
     values:
-      # - 'VOC'
-      - 'coco'
+      - 'VOC'
+      # - 'coco'
   model:
     values:
       - tinyissimo-v8-b

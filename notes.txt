@@ -1,0 +1,3 @@
+1. Run `MPLBACKEND=Agg` before command to not use interactive backend for Matplotlib. Otherwise it crashed when run in server
+2. Run CUDA_VISIBLE_DEVICES=1 before command to select GPU
+3. VOC has a bug! Run the script to download it, it will then fail. Go in the download folder, unzip the three zip files downloaded, run again the script and it should work.
