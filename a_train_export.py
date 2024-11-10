@@ -5,7 +5,7 @@ import argparse
 
 # Argument parsing
 parser = argparse.ArgumentParser(description='Train and export YOLO model.')
-parser.add_argument('--data', type=str, default='coco.yaml', help='Dataset configuration file')
+parser.add_argument('--data', type=str, default='coco', help='Dataset configuration file')
 parser.add_argument('--model', type=str, default='tinyissimo-v8-n', help='Model configuration file or name')
 args = parser.parse_args()
 
