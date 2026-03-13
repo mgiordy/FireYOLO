@@ -1,41 +1,122 @@
-This repository hosts the code for TinyissimoYOLO and DSORT-MCU as presented in [Ultra-Efficient On-Device Object Detection on AI-Integrated Smart Glasses with TinyissimoYOLO](https://arxiv.org/abs/2311.01057) and [DSORT-MCU: Detecting Small Objects in Real Time on MCUs](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10600127).
+# FireYOLO
 
+Object detection training and deployment pipeline built on top of [TinyissimoYOLO](tinyissimoYOLO_README.md), using a customized [Ultralytics](https://github.com/ultralytics/ultralytics) codebase. Designed for training lightweight YOLO models that can run on resource-constrained platforms (MCUs, smart glasses, etc.).
 
+---
 
-## [👓 Ultra-Efficient On-Device Object Detection on AI-Integrated Smart Glasses with TinyissimoYOLO](tinyissimoYOLO_README.md)
+## Setup
 
+**Requirements:** Python >= 3.10, PyTorch >= 1.7, CUDA (recommended).
 
-[Ultra-Efficient On-Device Object Detection on AI-Integrated Smart Glasses with TinyissimoYOLO](https://arxiv.org/abs/2311.01057)  
- Julian Moosmann* <sup>1</sup>,
- Pietro Bonazzi*<sup>1</sup>,
- Yawei Li<sup>1</sup>, 
- Sizhen Bian <sup>1</sup>, 
- Philipp Mayer<sup>1</sup> ,
- Luca Benini <sup>1</sup> ,
- Michele Magno<sup>1</sup>  <br>
+```bash
+python3.10 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
-<sup>1</sup> ETH Zurich, Switzerland  <br>  
+---
 
+## Repository Structure
 
-## Guide
+```
+FireYOLO/
+├── a_train_export.py            # Main script: train, export to ONNX, and validate
+├── inference.py                 # Inference script (Ultralytics + ONNX Runtime flow)
+├── nms.py                       # Custom NMS utilities
+├── requirements.txt             # Python dependencies
+├── sweeps/                      # W&B hyperparameter sweep configs
+│   └── sweep_models_all_classes.yaml
+├── ultralytics/                 # Local (modified) Ultralytics codebase
+│   └── cfg/
+│       ├── models/tinyissimo/   # Tinyissimo model definitions
+│       └── datasets/            # Dataset YAMLs (COCO, VOC, etc.)
+├── results_save/                # Saved training/export runs
+└── wandb/                       # Weights & Biases run logs and artifacts
+```
 
-For more details on how to train TinyissimoYOLO models, follow [this guide](tinyissimoYOLO_README.md).
+---
 
+## Training
 
-## [DSORT-MCU: Detecting Small Objects in Real Time on MCUs](dsort_README.md)
+### Standard Training (`a_train_export.py`)
 
-DSORT-MCU is a framework for training and running models with improved detection performance on small objects that does not increase memory footprint and thus enables detection on resource constrained platforms.
+This is the main entry point. It trains a TinyissimoYOLO model, exports to ONNX, and runs validation — all in one script. Results are logged to [Weights & Biases](https://wandb.ai).
 
-[DSORT-MCU: Detecting Small Objects in Real Time on MCUs](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10600127)
+If the selected dataset is not already available locally, the script will download it automatically.
 
- Liam Boyle <sup>1</sup>,
- Julian Moosmann<sup>1</sup>,
- Nicolas Baumann <sup>1</sup>, 
- Seonyeong Heo<sup>2</sup> ,
- Michele Magno<sup>1</sup>  <br>
+```bash
+python a_train_export.py --model tinyissimo-v8-n --data coco
+```
 
-<sup>1</sup> ETH Zurich, Switzerland  
-<sup>2</sup> Kyung Hee University, Republic of Korea <br> 
+**Arguments:**
 
-## Guide
-For a guide on how to train models with the adaptive tiling presented in DSORT-MCU follow [these instructions](dsort_README.md).
+| Argument  | Default            | Description                                                                 |
+|-----------|--------------------|-----------------------------------------------------------------------------|
+| `--model` | `tinyissimo-v8-n`  | Model architecture. Maps to a YAML file in `ultralytics/cfg/models/tinyissimo/`. |
+| `--data`  | `coco`             | Dataset config name (without `.yaml`). Maps to `ultralytics/cfg/datasets/`. |
+
+**Available models:** `tinyissimo-v8-b`, `tinyissimo-v8-n`, `tinyissimo-v8-s`, `tinyissimo-v8-m`, `tinyissimo-v8-l`, `tinyissimo-v8-x`
+
+These correspond to different width/depth scaling factors (from smallest `b` to largest `x`). Batch size is automatically adjusted based on model size to fit in ~24 GB VRAM.
+
+**Training details:**
+- Optimizer: SGD
+- Image size: 128x128
+- Epochs: 1000
+- Output: `results/<model>_<data>/` (weights, metrics, ONNX export)
+
+---
+
+## Evaluation
+
+Validation is run automatically at the end of training by `a_train_export.py`, both for the trained PyTorch model and for the exported ONNX model.
+
+---
+
+## Inference
+
+Run inference on a single image using a trained model (supports both `.pt` and `.onnx`):
+
+```bash
+python inference.py
+```
+
+Edit `model_path_onnx` and `image_path` inside the script to point to your model and image. The script runs both Ultralytics and custom NMS pipelines and visualizes detections.
+
+---
+
+## Model Configuration
+
+Model architectures live in `ultralytics/cfg/models/tinyissimo/`. Each YAML defines backbone and head layers, plus scaling factors:
+
+```yaml
+nc: 80        # Number of classes — change this to match your dataset
+scale: 'n'    # Scale variant (b, n, s, m, l, x)
+```
+
+To use a custom number of classes, edit the `nc` field in the model YAML or in the dataset YAML.
+
+---
+
+## Dataset Configuration
+
+Dataset YAML files in `ultralytics/cfg/datasets/` define paths to images/labels and class names. Available configs include COCO, VOC, and others. To add a custom dataset, create a new YAML following the same format.
+
+---
+
+## W&B Sweeps
+
+To run a grid sweep across all models and datasets:
+
+```bash
+wandb sweep sweeps/sweep_models_all_classes.yaml
+wandb agent <sweep_id>
+```
+
+This trains every combination of model size (`b` through `x`) on both VOC and COCO.
+
+---
+
+## Acknowledgments
+
+Based on [TinyissimoYOLO](https://arxiv.org/abs/2311.01057) by ETH Zurich, built on top of [Ultralytics](https://github.com/ultralytics/ultralytics).

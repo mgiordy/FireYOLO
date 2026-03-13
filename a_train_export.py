@@ -16,8 +16,7 @@ device = torch.device("cuda")
 model_name = f"./ultralytics/cfg/models/tinyissimo/{args.model}.yaml"
 model = YOLO(model_name)
 
-img_size = 256
-input_size = (1, 1, img_size, img_size)
+img_size = 128
 
 # Must fit in 24GB RAM
 if args.model == 'tinyissimo-v8-b' or args.model == 'tinyissimo-v8-n' or args.model == 'tinyissimo-v8-s':
@@ -32,7 +31,8 @@ folder_name = f"{args.model}_{args.data}"
 model.train(data=f"{args.data}.yaml", project="results", name=folder_name, optimizer='SGD', imgsz=img_size, epochs=1000, batch=batch_size, exist_ok=True)
 
 # Export
-model.export(format="onnx", project="results", name=folder_name, imgsz=[img_size, img_size], exist_ok=True)
+# ONNX
+model.export(format="onnx", project="results", name=folder_name, imgsz=img_size, exist_ok=True)
 
 # Validate
 onnx_model = YOLO(f"./results/{folder_name}/weights/best.onnx")

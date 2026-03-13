@@ -172,6 +172,9 @@ exp/
 tests/
 runs/
 results/
+results_save/
 wandb/
 
 .DS_Store
+
+*.zip
